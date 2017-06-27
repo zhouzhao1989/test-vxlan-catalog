@@ -1,0 +1,49 @@
+version: '2'
+services:
+  vxlan:
+    image: rancher/net:holder
+    network_mode: vxlan
+    command: sh -c "echo Refer to router sidekick for logs; mkfifo f; exec cat f"
+    ports:
+      - 4789:4789/udp
+    # Force cni-driver to start first
+    volumes_from:
+      - cni-driver
+    labels:
+      io.rancher.sidekicks: cni-driver, router
+      io.rancher.scheduler.global: 'true'
+      io.rancher.cni.link_mtu_overhead: '0'
+      io.rancher.internal.service.vxlan: 'true'
+      io.rancher.service.selector.link: io.rancher.internal.service.vxlan=true
+      io.rancher.network.macsync: 'true'
+      io.rancher.network.arpsync: 'true'
+  router:
+    cap_add:
+      - NET_ADMIN
+    image: rancher/net:v0.11.2
+    network_mode: container:vxlan
+    environment:
+      RANCHER_DEBUG: '${RANCHER_DEBUG}'
+    command: start-vxlan.sh
+    logging:
+      driver: json-file
+      options:
+        max-size: 25m
+        max-file: '2'
+    labels:
+      io.rancher.container.create_agent: 'true'
+      io.rancher.container.agent_service.vxlan: 'true'
+  cni-driver:
+    privileged: true
+    image: rancher/net:v0.11.2
+    command: sh -c "touch /var/log/rancher-cni.log && exec tail ---disable-inotify -F /var/log/rancher-cni.log"
+    network_mode: host
+    pid: host
+    labels:
+      io.rancher.network.cni.binary: 'rancher-bridge'
+      io.rancher.container.dns: 'true'
+    logging:
+      driver: json-file
+      options:
+        max-size: 25m
+        max-file: '2'
