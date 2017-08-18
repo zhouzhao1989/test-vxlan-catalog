@@ -1,7 +1,8 @@
 .catalog:
-  name: "Rancher VXLAN Holder"
-  version: "v0.1.0"
-  minimum_rancher_version: v1.6.0-alpha1
+  name: "Rancher VXLAN"
+  version: "v0.2.0"
+  minimum_rancher_version: v1.6.6-rc1
+  upgrade_from: 0.0.0
   questions:
     - variable: "DOCKER_BRIDGE"
       label: "Docker Bridge"
@@ -21,42 +22,33 @@
       type: "string"
       default: '10.42.0.0/16'
       required: true
+    - variable: "SUBNET_PREFIX"
+      label: "IPAM Subnet Prefix"
+      description: "The Subnet prefix to use for the managed network. For most users this is same as the bridge subnet prefix. Ex: 16 if using 10.42.0.0/16 for bridge subnet."
+      type: int
+      default: 16
+      required: true
     - variable: "RANCHER_DEBUG"
       label: "Enable Debug Logs"
       description: "This will enable very verbose debug logs."
       type: "boolean"
       default: "false"
       required: true
-
-vxlan:
-  network_driver:
-    name: Rancher VXLAN
-    default_network:
-      name: vxlan
-      host_ports: true
-      subnets:
-      - network_address: $SUBNET
-      dns:
-      - 169.254.169.250
-      dns_search:
-      - rancher.internal
-    cni_config:
-      '10-rancher-vxlan.conf':
-        name: rancher-cni-network
-        type: rancher-bridge
-        bridge: $DOCKER_BRIDGE
-        bridgeSubnet: $SUBNET
-        logToFile: /var/log/rancher-cni.log
-        isDebugLevel: ${RANCHER_DEBUG}
-        isDefaultGateway: true
-        hairpinMode: true
-        hostNat: true
-        hairpinMode: true
-        mtu: ${MTU}
-        linkMTUOverhead: 50
-        ipam:
-          type: rancher-cni-ipam
-          logToFile: /var/log/rancher-cni.log
-          isDebugLevel: ${RANCHER_DEBUG}
-          routes:
-            - dst: 169.254.169.250/32
+    - variable: "RANCHER_HAIRPIN_MODE"
+      label: "Enable Hairpin mode"
+      description: "If this is enabled, Promiscuous mode needs to be disabled."
+      type: "boolean"
+      default: "false"
+      required: true
+    - variable: "RANCHER_PROMISCUOUS_MODE"
+      label: "Enable Promiscuous mode on the bridge"
+      description: "If this is enabled, Hairpin mode needs to be disabled."
+      type: "boolean"
+      default: "true"
+      required: true
+    - variable: "HOST_PORTS"
+      label: "Enable Host Ports"
+      description: "Flag to enable/disable publishing the ports on the hosts"
+      type: "boolean"
+      default: "true"
+      required: true
