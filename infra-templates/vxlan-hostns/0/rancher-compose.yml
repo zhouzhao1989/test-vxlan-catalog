@@ -1,19 +1,14 @@
 .catalog:
   name: "Rancher VXLAN"
-  version: "v0.1.0"
-  minimum_rancher_version: v1.6.3-rc1
+  version: "v0.3.0"
+  upgrade_from: v0.2.0 || >v0.2.0
+  minimum_rancher_version: v1.6.10
   questions:
-    - variable: "RANCHER_BRIDGE"
-      label: "Bridge"
-      description: "Name of Bridge where the vxlan containers are connected. Default is `docker0`"
+    - variable: "DOCKER_BRIDGE"
+      label: "Docker Bridge"
+      description: "Name of Docker Bridge. Default is `docker0`"
       type: "string"
       default: "docker0"
-      required: true
-    - variable: "RANCHER_METADATA_ADDRESS"
-      label: "Metadata IP Address"
-      description: "IP address of rancher-metadata service. Default is `169.254.169.250`"
-      type: "string"
-      default: "169.254.169.250"
       required: true
     - variable: MTU
       label: "MTU for the network"
@@ -32,12 +27,6 @@
       description: "The Subnet prefix to use for the managed network. For most users this is same as the bridge subnet prefix. Ex: 16 if using 10.42.0.0/16 for bridge subnet."
       type: int
       default: 16
-      required: true
-    - variable: "RANCHER_VXLAN_VNI"
-      label: "VXLAN VNI"
-      description: "Vxlan vni"
-      type: int
-      default: 1042
       required: true
     - variable: "RANCHER_DEBUG"
       label: "Enable Debug Logs"
